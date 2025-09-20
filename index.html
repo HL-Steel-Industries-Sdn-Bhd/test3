@@ -2,724 +2,272 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<title>高精度二维码扫描 - Angelina</title>
+<title>工人扫码 - Angelina</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 <style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 body {
-  font-family: "Segoe UI", Arial, sans-serif;
-  height: 100vh;
-  background: #f4f6f9;
-  display: flex;
-  flex-direction: column;
+margin: 0;
+font-family: "Segoe UI", Arial, sans-serif;
+display: flex;
+height: 100vh;
+background: #f4f6f9;
+overflow-x: hidden; /* 禁止横向移动 */
 }
-
-/* 顶部标题栏 */
-.header {
-  background: #2c3e50;
-  color: white;
-  padding: 0.8rem 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.header h1 {
-  font-size: 1.2rem;
-  font-weight: 500;
-}
-
-/* 主内容区 */
-.main-content {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
 /* 左边扫码区 */
-.scanner-panel {
-  flex: 0 0 40%;
-  background: linear-gradient(180deg, #fff, #f1f4ff);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1.5rem 1rem;
-  box-shadow: 2px 0 8px rgba(0,0,0,0.08);
+#leftPanel {
+flex: 0 0 35%;
+background: linear-gradient(180deg, #fff, #f1f4ff);
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 2rem 1rem;
+box-shadow: 2px 0 8px rgba(0,0,0,0.08);
+position: sticky;
+top: 0;
+height: 100vh; /* 左边固定不动 */
+overflow: hidden;
 }
-
-.scanner-container {
-  width: 100%;
-  max-width: 400px;
-  aspect-ratio: 1;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-  background: #000;
-  overflow: hidden;
-  position: relative;
+#leftPanel h2 {
+margin: 0 0 1rem;
+color: #34495e;
 }
-
-#video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+#reader {
+width: 90%;
+max-width: 350px;
+aspect-ratio: 1;
+border-radius: 12px;
+box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+background: #fff;
 }
-
-.scanner-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.scanner-line {
-  position: absolute;
-  height: 2px;
-  width: 100%;
-  background: #ff4081;
-  box-shadow: 0 0 10px rgba(255, 64, 129, 0.7);
-  animation: scan 2s infinite linear;
-}
-
-@keyframes scan {
-  0% { top: 0; }
-  50% { top: calc(100% - 2px); }
-  100% { top: 0; }
-}
-
-.scanner-corner {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  border-color: #ff4081;
-  border-style: solid;
-}
-
-.scanner-corner-tl {
-  top: 0;
-  left: 0;
-  border-width: 3px 0 0 3px;
-}
-
-.scanner-corner-tr {
-  top: 0;
-  right: 0;
-  border-width: 3px 3px 0 0;
-}
-
-.scanner-corner-bl {
-  bottom: 0;
-  left: 0;
-  border-width: 0 0 3px 3px;
-}
-
-.scanner-corner-br {
-  bottom: 0;
-  right: 0;
-  border-width: 0 3px 3px 0;
-}
-
-.scanner-input {
-  margin-top: 1.5rem;
-  padding: 0.8rem;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 350px;
-}
-
-.controls {
-  margin-top: 1rem;
-  display: flex;
-  gap: 10px;
-  width: 90%;
-  max-width: 350px;
-}
-
-.controls button {
-  flex: 1;
-  padding: 0.6rem;
-  border: none;
-  border-radius: 6px;
-  background: #3498db;
-  color: white;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.controls button:hover {
-  background: #2980b9;
-}
-
-.controls button#toggleTorch {
-  background: #2c3e50;
-}
-
-.controls button#toggleTorch:hover {
-  background: #1a252f;
-}
-
-.quality-info {
-  margin-top: 1rem;
-  font-size: 14px;
-  color: #7f8c8d;
-  text-align: center;
-  width: 90%;
+#scannerInput {
+margin-top: 1rem;
+padding: 0.6rem;
+font-size: 15px;
+border: 1px solid #ccc;
+border-radius: 6px;
+width: 85%;
 }
 
 /* 右边结果区 */
-.result-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+#rightPanel {
+flex: 1;
+display: flex;
+flex-direction: column;
+overflow: hidden; /* 右边整体不横向动 */
 }
-
-.current-box {
-  background: #fff;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #ddd;
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+#currentBox {
+background: #fff;
+padding: 1rem 1.5rem;
+border-bottom: 1px solid #ddd;
+position: sticky;
+top: 0;
+z-index: 5;
 }
-
-.current-box h3 {
-  margin: 0 0 0.5rem;
-  color: #2c3e50;
+#currentBox h3 {
+margin: 0 0 0.5rem;
+color: #2c3e50;
 }
-
-.current-info {
-  font-size: 14px;
-  color: #34495e;
-}
-
-.count-box {
-  color: #ff9800;
-  font-weight: bold;
-}
-
-.list-box {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem;
+#listBox {
+flex: 1;
+overflow-y: auto; /* 只允许上下滚动 */
+padding: 1rem;
 }
 
 /* 表格 */
 table {
-  border-collapse: collapse;
-  width: 100%;
-  background: #fff;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+border-collapse: collapse;
+width: 100%;
+background: #fff;
+border-radius: 8px;
+overflow: hidden;
 }
-
 th, td {
-  padding: 12px 15px;
-  font-size: 14px;
-  border: 1px solid #eee;
-  text-align: left;
+padding: 10px;
+font-size: 14px;
+border: 1px solid #eee;
 }
-
 th {
-  background: #f8f9fa;
-  font-weight: 600;
-  color: #2c3e50;
+background: #f8f9fa;
+font-weight: bold;
 }
-
 tr:nth-child(even) {
-  background: #fafafa;
+background: #fafafa;
 }
 
 /* toast 提示 */
-.toast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  color: #fff;
-  padding: 12px 18px;
-  border-radius: 8px;
-  font-size: 14px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  opacity: 0;
-  transition: opacity 0.3s, transform 0.3s;
-  transform: translateY(20px);
-  pointer-events: none;
-  z-index: 9999;
-  max-width: 300px;
+#toast {
+position: fixed;
+bottom: 20px;
+right: 20px;
+background: #e74c3c;
+color: #fff;
+padding: 10px 16px;
+border-radius: 6px;
+font-size: 14px;
+box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+opacity: 0;
+transition: opacity 0.4s, transform 0.4s;
+transform: translateY(20px);
+pointer-events: none;
+z-index: 999;
 }
-
-.toast.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* 响应式设计 */
-@media (max-width: 900px) {
-  .main-content {
-    flex-direction: column;
-  }
-  
-  .scanner-panel {
-    flex: none;
-    padding: 1rem;
-  }
-  
-  .scanner-container {
-    max-width: 300px;
-  }
-}
-
-@media (max-width: 600px) {
-  .header h1 {
-    font-size: 1rem;
-  }
-  
-  .scanner-input {
-    font-size: 14px;
-    padding: 0.7rem;
-  }
-  
-  th, td {
-    padding: 10px;
-    font-size: 13px;
-  }
-}
-
-/* 横屏优化 */
-@media (orientation: landscape) and (max-height: 500px) {
-  .header {
-    padding: 0.5rem;
-  }
-  
-  .scanner-panel {
-    padding: 0.5rem;
-  }
-  
-  .scanner-container {
-    max-width: 40vh;
-  }
-  
-  .scanner-input {
-    margin-top: 0.8rem;
-    padding: 0.5rem;
-  }
-  
-  .controls {
-    margin-top: 0.8rem;
-  }
+#toast.show {
+opacity: 1;
+transform: translateY(0);
 }
 </style>
 </head>
 <body>
-<!-- 顶部标题栏 -->
-<div class="header">
-  <h1>高精度二维码扫描系统 (ZXing)</h1>
-  <div>Welcome Angelina (A0001)</div>
+<!-- 左边固定扫码区 -->
+<div id="leftPanel">
+<h2>Welcome Angelina (A0001)</h2>
+<div id="reader"></div>
+<input type="text" id="scannerInput" placeholder="请扫描图纸上的 QR Code" autofocus>
 </div>
 
-<!-- 主内容区 -->
-<div class="main-content">
-  <!-- 左边扫码区 -->
-  <div class="scanner-panel">
-    <div class="scanner-container">
-      <video id="video" muted playsinline></video>
-      <div class="scanner-overlay">
-        <div class="scanner-line"></div>
-        <div class="scanner-corner scanner-corner-tl"></div>
-        <div class="scanner-corner scanner-corner-tr"></div>
-        <div class="scanner-corner scanner-corner-bl"></div>
-        <div class="scanner-corner scanner-corner-br"></div>
-      </div>
-    </div>
+<!-- 右边结果区 -->
+<div id="rightPanel">
+<!-- 上方固定：当前相机对着的二维码资料 + 已扫描数 -->
+<div id="currentBox">
+<h3>当前扫描结果</h3>
+<div id="currentInfo">等待扫描...</div>
+<div id="countBox" style="margin-top:8px;color:#ff9800;font-weight:bold;">已扫描 0 张图纸</div>
+</div>
 
-    <input type="text" class="scanner-input" id="scannerInput" placeholder="请扫描图纸上的 QR Code 或手动输入" autofocus>
-    <div class="controls">
-      <button id="toggleCamera">切换摄像头</button>
-      <button id="toggleTorch">开启闪光灯</button>
-    </div>
-    <div class="quality-info">
-      ZXing算法已启用，优化小尺寸和模糊二维码识别
-    </div>
-  </div>
-
-  <!-- 右边结果区 -->
-  <div class="result-panel">
-    <!-- 上方固定：当前相机对着的二维码资料 + 已扫描数 -->
-    <div class="current-box">
-      <h3>当前扫描结果</h3>
-      <div class="current-info" id="currentInfo">等待扫描...</div>
-      <div class="count-box" id="countBox">已扫描 0 张图纸</div>
-    </div>
-
-    <!-- 下方可滚动：已确认的扫描记录 -->
-    <div class="list-box">
-      <table id="resultTable">
-        <thead>
-          <tr>
-            <th>Sales Order No.</th>
-            <th>Item No.</th>
-            <th>Name</th>
-            <th>Units</th>
-            <th>Dimension</th>
-            <th>Link</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
+<!-- 下方可滚动：已确认的扫描记录 -->
+<div id="listBox">
+<table id="resultTable">
+<thead>
+<tr>
+<th>Sales Order No.</th>
+<th>Item No.</th>
+<th>Name</th>
+<th>Units</th>
+<th>Dimension</th>
+<th>Link</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
 </div>
 
 <!-- toast -->
-<div class="toast" id="toast" role="status" aria-live="polite">提示</div>
+<div id="toast">已扫描过该图纸</div>
 
 <script>
-// ---------- 配置区域 ----------
-const ALLOWED_HOST = "yourdomain.github.io"; // 允许的 host（严格匹配）
-const ALLOWED_PATH = "/repo";               // 允许的路径（不区分尾部 /）
-// --------------------------------
-
-const { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } = ZXing;
-const videoElement = document.getElementById('video');
-const input = document.getElementById('scannerInput');
-const toast = document.getElementById('toast');
+const html5QrCode = new Html5Qrcode("reader");
+const input = document.getElementById("scannerInput");
+const toast = document.getElementById("toast");
 const resultTable = document.querySelector("#resultTable tbody");
-const countBox = document.getElementById('countBox');
-const currentInfo = document.getElementById('currentInfo');
-const toggleCameraBtn = document.getElementById('toggleCamera');
-const toggleTorchBtn = document.getElementById('toggleTorch');
+const countBox = document.getElementById("countBox");
+const currentInfo = document.getElementById("currentInfo");
 const scannedLinks = new Set();
 
-let codeReader = null;
-let torchState = false;
-let currentDeviceId = null;
-let availableCameras = [];
-let isScanning = false;
-
-// 冷却记录（比如重复扫描提示 3 秒冷却）
-const lastToastTimes = {
-  duplicate: 0
-};
-let toastTimeout = null;
-let scanTimeout = null;
-
-function showToast(msg, type = "info") {
-  toast.textContent = msg;
-  if (type === "info") {
-    toast.style.backgroundColor = "#007bff";
-  } else if (type === "warn") {
-    toast.style.backgroundColor = "#ff9800";
-  } else if (type === "error") {
-    toast.style.backgroundColor = "#e74c3c";
-  } else if (type === "success") {
-    toast.style.backgroundColor = "#27ae60";
-  } else {
-    toast.style.backgroundColor = "#333";
-  }
-
-  toast.classList.add("show");
-  if (toastTimeout) clearTimeout(toastTimeout);
-  toastTimeout = setTimeout(() => {
-    toast.classList.remove("show");
-    toastTimeout = null;
-  }, 2000);
+function showToast(msg) {
+toast.textContent = msg;
+toast.classList.add("show");
+setTimeout(() => toast.classList.remove("show"), 2000);
 }
 
 function updateCount() {
-  countBox.textContent = "已扫描 " + scannedLinks.size + " 张图纸";
+countBox.textContent = "已扫描 " + scannedLinks.size + " 张图纸";
 }
 
-function normalizePath(path) {
-  return path.replace(/\/+$/, "");
-}
+function formatData(u, url) {
+let salesOrder = u.searchParams.get("so") || "";
+let item = u.searchParams.get("item") || "";
+let name = u.searchParams.get("name") || "";
+let unit = u.searchParams.get("unit") || "";
+let dim = u.searchParams.get("dim") || "";
 
-function isPaperUrl(u) {
-  try {
-    const host = (u.hostname || "").toLowerCase();
-    const path = normalizePath(u.pathname || "");
-    const hasParams = u.searchParams.get("so") && u.searchParams.get("item");
-    return host === ALLOWED_HOST && path === ALLOWED_PATH && hasParams;
-  } catch (e) {
-    return false;
-  }
-}
+if (salesOrder) salesOrder = salesOrder.replace(/^SO/, "SO-");
+if (dim) dim = dim.replace(/x/g, " x ") + " mm";
+if (name) name = name.replace(/\+/g, " ");
 
-function formatData(u) {
-  const normalizedUrl = u.origin + normalizePath(u.pathname) + (u.search || "");
-  let salesOrder = u.searchParams.get("so") || "";
-  let item = u.searchParams.get("item") || "";
-  let name = u.searchParams.get("name") || "";
-  let unit = u.searchParams.get("unit") || "";
-  let dim = u.searchParams.get("dim") || "";
-
-  if (salesOrder) {
-    salesOrder = salesOrder.replace(/^SO-?/i, "SO-");
-  }
-  if (dim) {
-    dim = dim.replace(/x/g, " x ") + " mm";
-  }
-  if (name) {
-    name = name.replace(/\+/g, " ");
-  }
-
-  return {
-    salesOrder,
-    item,
-    name,
-    unit,
-    dim,
-    url: normalizedUrl
-  };
+return { salesOrder, item, name, unit, dim, url };
 }
 
 function displayCurrent(data) {
-  currentInfo.innerHTML = `
-    <b>Sales Order:</b> ${data.salesOrder || "-"} <br>
-    <b>Item No.:</b> ${data.item || "-"} <br>
-    <b>Name:</b> ${data.name || "-"} <br>
-    <b>Units:</b> ${data.unit || "-"} <br>
-    <b>Dimension:</b> ${data.dim || "-"} <br>
-    <b>Link:</b> <a href="${data.url}" target="_blank" rel="noopener">Link</a>
-  `;
+currentInfo.innerHTML = `
+<b>Sales Order:</b> ${data.salesOrder || "-"} <br>
+<b>Item No.:</b> ${data.item || "-"} <br>
+<b>Name:</b> ${data.name || "-"} <br>
+<b>Units:</b> ${data.unit || "-"} <br>
+<b>Dimension:</b> ${data.dim || "-"} <br>
+<b>Link:</b> <a href="${data.url}" target="_blank">Link</a>
+`;
 }
 
 function addToList(data) {
-  if (scannedLinks.has(data.url)) {
-    const now = Date.now();
-    if (now - lastToastTimes.duplicate > 3000) {
-      lastToastTimes.duplicate = now;
-      showToast("已扫描过该图纸", "warn");
-    }
-    return;
-  }
-  let row = document.createElement("tr");
-  row.innerHTML = `
-    <td>${data.salesOrder}</td>
-    <td>${data.item}</td>
-    <td>${data.name}</td>
-    <td>${data.unit}</td>
-    <td>${data.dim}</td>
-    <td><a href="${data.url}" target="_blank" rel="noopener">Link</a></td>
-  `;
-  resultTable.appendChild(row);
-  scannedLinks.add(data.url);
-  updateCount();
-  showToast("已加入扫描记录", "success");
+if (scannedLinks.has(data.url)) {
+showToast("已扫描过该图纸");
+return;
+}
+let row = document.createElement("tr");
+row.innerHTML = `
+<td>${data.salesOrder}</td>
+<td>${data.item}</td>
+<td>${data.name}</td>
+<td>${data.unit}</td>
+<td>${data.dim}</td>
+<td><a href="${data.url}" target="_blank">Link</a></td>
+`;
+resultTable.appendChild(row);
+scannedLinks.add(data.url);
+updateCount();
 }
 
 function handleScan(text) {
-  if (!text) return;
-  text = text.trim();
+if (!text) return;
 
-  try {
-    const u = new URL(text);
+try {
+let u = new URL(text);
 
-    if (isPaperUrl(u)) {
-      const data = formatData(u);
-      displayCurrent(data);
-      addToList(data);
-    } else {
-      currentInfo.textContent = "非图纸 QR，已忽略: " + text;
-      showToast("非图纸 QR 已忽略", "info");
-    }
-  } catch (err) {
-    currentInfo.textContent = "无效的 QR 内容: " + text;
-    showToast("无效的 QR 内容", "error");
-  }
+// 只允许 yourdomain.github.io/repo/
+if (u.hostname === "yourdomain.github.io" && u.pathname === "/repo/") {
+if (u.searchParams.get("so") && u.searchParams.get("item")) {
+let data = formatData(u, text);
+displayCurrent(data);
+addToList(data);
+} else {
+showToast("无效图纸链接");
+currentInfo.textContent = "无效图纸链接: " + text;
+}
+} else {
+showToast("非图纸 QR 已忽略");
+currentInfo.textContent = "非图纸 QR，已忽略: " + text;
 }
 
-// 初始化ZXing扫描器
-function initScanner() {
-  // 配置解码提示，优化小尺寸和模糊二维码识别
-  const hints = new Map();
-  hints.set(DecodeHintType.TRY_HARDER, true);
-  hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.QR_CODE]);
-  hints.set(DecodeHintType.PURE_BARCODE, false);
-
-  codeReader = new BrowserMultiFormatReader(hints);
-  codeReader.timeBetweenDecodingAttempts = 500;
-
-  // 获取摄像头列表
-  listCameras();
+} catch {
+showToast("无效 QR");
+currentInfo.textContent = "无效的 QR 内容: " + text;
+}
 }
 
-// 获取摄像头列表
-function listCameras() {
-  codeReader.listVideoInputDevices()
-    .then(devices => {
-      availableCameras = devices;
-      if (devices.length > 0) {
-        // 优先选择后置摄像头
-        const backCamera = devices.find(device => 
-          device.label.toLowerCase().includes('back') || 
-          device.label.toLowerCase().includes('rear')
-        );
-        currentDeviceId = backCamera ? backCamera.deviceId : devices[0].deviceId;
-        startScanning();
-      } else {
-        showToast('未找到摄像头', 'error');
-      }
-    })
-    .catch(err => {
-      console.error('获取摄像头列表失败:', err);
-      showToast('无法访问摄像头: ' + err, 'error');
-    });
-}
-
-// 开始扫描
 function startScanning() {
-  if (!currentDeviceId) return;
-  
-  isScanning = true;
-  
-  // 配置摄像头参数，提高分辨率以识别小二维码
-  const constraints = {
-    video: {
-      deviceId: { exact: currentDeviceId },
-      width: { ideal: 1920 },
-      height: { ideal: 1080 }
-    }
-  };
-  
-  codeReader.decodeFromVideoDevice(
-    currentDeviceId,
-    videoElement,
-    (result, err) => {
-      if (result) {
-        handleScan(result.text);
-        // 扫描成功后暂停一下，避免重复扫描
-        if (scanTimeout) clearTimeout(scanTimeout);
-        videoElement.style.opacity = '0.5';
-        setTimeout(() => {
-          videoElement.style.opacity = '1';
-        }, 1000);
-      }
-      if (err && !err.message.includes('NotFoundException')) {
-        console.debug('扫描尝试:', err);
-      }
-    },
-    constraints
-  )
-  .then(() => {
-    console.log('扫描已开始');
-    showToast('扫描已启动', 'success');
-  })
-  .catch(err => {
-    console.error('扫描启动失败:', err);
-    showToast('相机启动失败: ' + err, 'error');
-  });
+html5QrCode.start(
+{ facingMode: "environment" },
+{ fps: 15, qrbox: (vw, vh) => {
+let minEdge = Math.min(vw, vh);
+return { width: minEdge * 0.7, height: minEdge * 0.7 };
+}
+},
+(decodedText) => handleScan(decodedText),
+() => {}
+).catch(err => console.error("扫描启动失败:", err));
 }
 
-// 停止扫描
-function stopScanning() {
-  if (codeReader) {
-    codeReader.reset();
-    isScanning = false;
-  }
+startScanning();
+
+// 输入框也能手动输入二维码文本
+input.addEventListener("keypress", function(e) {
+if (e.key === "Enter") {
+const text = input.value.trim();
+handleScan(text);
+input.value = "";
 }
-
-// 切换摄像头
-function switchCamera() {
-  if (availableCameras.length <= 1) {
-    showToast('未找到其他摄像头', 'info');
-    return;
-  }
-  
-  stopScanning();
-  
-  const currentIndex = availableCameras.findIndex(camera => 
-    camera.deviceId === currentDeviceId
-  );
-  const nextIndex = (currentIndex + 1) % availableCameras.length;
-  currentDeviceId = availableCameras[nextIndex].deviceId;
-  
-  setTimeout(() => {
-    startScanning();
-    showToast(`切换到: ${availableCameras[nextIndex].label}`, 'info');
-  }, 500);
-}
-
-// 切换闪光灯
-function toggleTorch() {
-  if (!isScanning) {
-    showToast('请先启动扫描', 'warn');
-    return;
-  }
-  
-  torchState = !torchState;
-  
-  // 尝试控制闪光灯
-  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({
-      video: {
-        deviceId: { exact: currentDeviceId },
-        advanced: [{ torch: torchState }]
-      }
-    })
-    .then(stream => {
-      const track = stream.getVideoTracks()[0];
-      if (track && track.getCapabilities().torch) {
-        track.applyConstraints({
-          advanced: [{ torch: torchState }]
-        })
-        .then(() => {
-          toggleTorchBtn.textContent = torchState ? '关闭闪光灯' : '开启闪光灯';
-          showToast(torchState ? '闪光灯已开启' : '闪光灯已关闭', 'info');
-        })
-        .catch(err => {
-          console.error('控制闪光灯失败:', err);
-          showToast('设备不支持闪光灯控制', 'warn');
-        });
-      } else {
-        showToast('设备不支持闪光灯', 'warn');
-      }
-    })
-    .catch(err => {
-      console.error('访问摄像头失败:', err);
-      showToast('闪光灯控制失败', 'error');
-    });
-  } else {
-    showToast('浏览器不支持闪光灯控制', 'warn');
-  }
-}
-
-// 初始化
-document.addEventListener('DOMContentLoaded', function() {
-  initScanner();
-
-  // 切换摄像头按钮事件
-  toggleCameraBtn.addEventListener('click', switchCamera);
-
-  // 切换闪光灯按钮事件
-  toggleTorchBtn.addEventListener('click', toggleTorch);
-
-  // 输入框也能手动输入二维码文本（按 Enter）
-  input.addEventListener("keypress", function(e) {
-    if (e.key === "Enter") {
-      const text = input.value.trim();
-      handleScan(text);
-      input.value = "";
-    }
-  });
-});
-
-// 页面卸载或切换时停止相机
-window.addEventListener("beforeunload", function() {
-  stopScanning();
 });
 </script>
 </body>
